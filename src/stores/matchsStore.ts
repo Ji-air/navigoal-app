@@ -1,5 +1,8 @@
 import { create } from 'zustand'
 import { MATCHS_JOUR } from '../data/journee'
+import { startSyncMatchs, stopSyncMatchs } from '../lib/sync-matchs'
+import type { ImpulsionSync } from '../lib/sync-matchs'
+import type { ImpulsionPoste } from '../lib/supabase'
 import type { MatchJour, Palier, PosteNavigoal } from '../types'
 
 export type StatutMatch = 'planifié' | 'en_cours' | 'terminé'
@@ -31,6 +34,21 @@ export interface MatchEtat {
   impulsions: ImpulsionAffichage[]
 }
 
+// Mapping ImpulsionPoste (DB / moteur 4-postes) → PosteNavigoal (store UI 5-postes)
+const POSTE_DB_TO_UI: Record<ImpulsionPoste, PosteNavigoal> = {
+  Cap: 'Captain', Barre: 'Second', Ancre: 'Watch', Vigie: 'Keeper',
+}
+
+function deriveTypeImpulsion(
+  type: 'poste' | 'collectif',
+  poste: ImpulsionPoste | null,
+): TypeImpulsion {
+  if (type === 'collectif') return 'collectif'
+  if (poste === 'Ancre') return 'clean_sheet'
+  if (poste === 'Vigie') return 'arret'
+  return 'but'
+}
+
 interface MatchsState {
   matchs: MatchJour[]
   etats: Record<string, MatchEtat>
@@ -40,6 +58,8 @@ interface MatchsState {
   addImpulsion: (matchId: string, impulsion: Omit<ImpulsionAffichage, 'id'>) => void
   startPolling: () => void
   stopPolling: () => void
+  startRealtime: (equipageId: string, journeeId: string) => Promise<void>
+  stopRealtime: () => void
 }
 
 // ---------------------------------------------------------------------------
@@ -141,5 +161,35 @@ export const useMatchsStore = create<MatchsState>((set, get) => ({
     if (!pollingId) return
     clearInterval(pollingId)
     set({ pollingId: null })
+  },
+
+  startRealtime: async (equipageId, journeeId) => {
+    await startSyncMatchs(equipageId, journeeId, {
+      onMatchUpdate: (m) => {
+        get().updateScore(
+          m.id,
+          m.scoreNationA,
+          m.scoreNationB,
+          m.statut as StatutMatch,
+        )
+      },
+      onImpulsion: (imp: ImpulsionSync) => {
+        if (!imp.matchId) return
+        const posteUi: PosteNavigoal | 'collectif' =
+          imp.poste ? POSTE_DB_TO_UI[imp.poste] : 'collectif'
+        get().addImpulsion(imp.matchId, {
+          nationId: imp.nationId ?? '',
+          poste: posteUi,
+          joueurNom: imp.joueurNom,
+          type: deriveTypeImpulsion(imp.type, imp.poste),
+          nm: imp.nm,
+          palier: imp.palier,
+        })
+      },
+    })
+  },
+
+  stopRealtime: () => {
+    stopSyncMatchs()
   },
 }))
