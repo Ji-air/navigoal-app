@@ -5,6 +5,10 @@ node_modules/
 dist/
 dist-ssr/
 
+# Compiled JS — générés depuis TS/TSX, ne pas committer
+src/**/*.js
+src/**/*.js.map
+
 # Secrets — NE JAMAIS COMMITTER
 .env.local
 .env.*.local
