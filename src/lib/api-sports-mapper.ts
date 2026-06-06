@@ -52,15 +52,27 @@ export function mapPosteVerboseToNavigoal(position: string | null | undefined): 
 // MAPPING PALIERS (R3)
 // =========================================================
 
+// Valeurs nm par palier — calibrées sur CM2018 + CM2022 (R3).
+// Source de vérité : toujours lire ici plutôt que de dupliquer dans les stores.
+export const BREEZE_NM = 12
+export const WIND_NM   = 28
+export const BOOST_NM  = 50
+
+export function palierToNm(palier: Palier): number {
+  if (palier === 'Breeze') return BREEZE_NM
+  if (palier === 'Wind')   return WIND_NM
+  return BOOST_NM
+}
+
 /**
  * Mappe une cote décimale vers un palier Navigoal selon R3.
  *
  * Seuils R3 :
- *   Breeze : cote < 2.0   → favori        → impulsion légère
- *   Wind   : 2.0 ≤ cote ≤ 4.5 → outsider modéré → impulsion standard
- *   Boost  : cote > 4.5   → outsider fort → impulsion maximale
+ *   Breeze : cote < 2.0          → favori         → 12nm
+ *   Wind   : 2.0 ≤ cote ≤ 4.5   → outsider modéré → 28nm
+ *   Boost  : cote > 4.5          → outsider fort   → 50nm
  *
- * Note : si aucune cote n'est disponible, le modèle définit Wind comme défaut (MODELE.md).
+ * Nation sans cote : défaut Wind (28nm) — MODELE.md.
  */
 export function mapOddsToPalier(odds: number): Palier {
   if (odds < 2.0)  return 'Breeze'
