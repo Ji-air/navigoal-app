@@ -999,6 +999,302 @@ button {
 }
 
 /* =========================================================
+   Page Matchs v2 — design fidèle aux maquettes
+   ========================================================= */
+
+.matchs-page-v2 {
+  height: 100%;
+  overflow-y: auto;
+  padding: 24px 20px 32px;
+  background: var(--bg-base);
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-pg-label {
+  font-family: var(--font-body);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mc-pg-h1 {
+  font-family: var(--font-display);
+  font-size: var(--display-lg);
+  letter-spacing: .04em;
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: 20px;
+}
+
+.mc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ---- Match Card ---- */
+
+.mc {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-bottom-color: var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.mc-head {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  align-items: stretch;
+}
+
+/* Colonne score / heure */
+.mc-sc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  background: rgba(0,229,204,.04);
+  border-right: 1px solid var(--border-subtle);
+}
+
+.mc-sc-n {
+  font-family: var(--font-display);
+  font-size: 40px;
+  letter-spacing: .01em;
+  color: var(--text-primary);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.mc-sc-n--live {
+  color: var(--accent);
+}
+
+.mc-sc-n--pend {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  letter-spacing: .08em;
+  color: var(--text-tertiary);
+}
+
+.mc-live {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-body);
+  font-size: 8px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.mc-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  animation: mc-blink 1.6s ease-in-out infinite;
+}
+
+@keyframes mc-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .18; }
+}
+
+/* Colonne nations */
+.mc-nats {
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-nat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  flex: 1;
+  min-height: 38px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mc-nat-row:last-child {
+  border-bottom: none;
+}
+
+.mc-nat-row--on {
+  background: rgba(0,229,204,.06);
+  border-left: 2px solid var(--accent);
+  padding-left: 10px;
+}
+
+.mc-nat-row--on .mc-nat-name {
+  color: var(--accent);
+}
+
+.mc-nat-flag {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.mc-nat-name {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  flex: 1;
+  letter-spacing: .01em;
+}
+
+.mc-nat-role {
+  font-family: var(--font-body);
+  font-size: 8px;
+  font-weight: 500;
+  color: rgba(0,229,204,.55);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* Section événements / impulsions */
+.mc-evts {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.mc-evt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.03);
+}
+
+.mc-evt:last-child {
+  border-bottom: none;
+}
+
+.mc-evt-ico {
+  font-size: 11px;
+  width: 16px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.mc-evt-name {
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: .01em;
+}
+
+.mc-evt-empty {
+  padding: 12px;
+  font-family: var(--font-body);
+  font-size: var(--text-2xs);
+  color: var(--text-tertiary);
+  text-align: center;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+/* Pilules NM — couleur par palier */
+.mc-nm-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: .06em;
+  flex-shrink: 0;
+}
+
+.mc-nm-pill--breeze {
+  background: rgba(138,173,187,.12);
+  border: 1px solid rgba(138,173,187,.26);
+  color: var(--tier-breeze);
+}
+
+.mc-nm-pill--wind {
+  background: rgba(0,229,204,.10);
+  border: 1px solid rgba(0,229,204,.22);
+  color: var(--tier-wind);
+}
+
+.mc-nm-pill--boost {
+  background: rgba(240,165,0,.10);
+  border: 1px solid rgba(240,165,0,.22);
+  color: var(--tier-boost);
+}
+
+/* Bloc total journée */
+.mc-total {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.mc-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mc-total-row:last-child {
+  border-bottom: none;
+}
+
+.mc-total-lbl {
+  font-family: var(--font-body);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: .10em;
+  text-transform: uppercase;
+}
+
+.mc-total-val {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: .04em;
+  color: var(--text-primary);
+}
+
+.mc-total-row--live .mc-total-lbl { color: var(--accent); }
+.mc-total-row--live .mc-total-val { color: var(--accent); }
+
+.mc-total-row--sum {
+  background: rgba(0,229,204,.05);
+}
+
+.mc-total-row--sum .mc-total-lbl { color: var(--accent); }
+.mc-total-row--sum .mc-total-val { font-size: 32px; color: var(--accent); }
+
+.mc-total-row--bonus .mc-total-lbl { color: var(--warning); }
+.mc-total-row--bonus .mc-total-val { color: var(--warning); }
+
+/* =========================================================
    Page Carte — design maritime SVG
    ========================================================= */
 

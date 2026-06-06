@@ -4,7 +4,6 @@ import PosteRow from '../components/PosteRow'
 import SheetNation, { type NationInfo } from '../components/SheetNation'
 import SheetLigne from '../components/SheetLigne'
 import { useEquipageStore, type PosteKey } from '../stores/equipageStore'
-import { useEquipage } from '../store/equipage'
 import { fetchJourneeCourante } from '../lib/supabase'
 
 // ---------------------------------------------------------------------------
@@ -50,7 +49,7 @@ const POSTES: PosteKey[] = ['cap', 'barre', 'ancre', 'vigie']
 
 export default function EquipagePage() {
   const { postes, journeeNumero, validerEquipage, valide, setPoste } = useEquipageStore()
-  const { gelState } = useEquipage()
+  const gelState = { estGele: false, secondsAvantGel: null as number | null }
 
   const [journeeId, setJourneeId] = useState<string>('')
   const [activePoste, setActivePoste] = useState<PosteKey | null>(null)

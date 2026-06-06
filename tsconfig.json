@@ -10,5 +10,11 @@
     "types": ["vite/client"]
   },
   "include": ["src"],
-  "exclude": ["src/index.ts", "src/components/index.ts"]
+  "exclude": [
+    "src/index.ts",
+    "src/components/index.ts",
+    "src/scripts",
+    "src/lib/api-sports.ts",
+    "src/lib/api-sports-mapper.ts"
+  ]
 }
