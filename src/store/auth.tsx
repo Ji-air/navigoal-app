@@ -1,0 +1,75 @@
+import React, { createContext, useContext, useEffect, useState } from 'react'
+
+const TRENTE_JOURS_MS = 30 * 24 * 60 * 60 * 1000
+const SEPT_JOURS_MS   =  7 * 24 * 60 * 60 * 1000
+
+export interface Session {
+  id: string
+  pseudo: string
+  email: string
+  expiresAt: number
+}
+
+interface AuthContextValue {
+  session: Session | null
+  connexionRapide(pseudo: string): void
+  seDeconnecter(): void
+}
+
+const LS_KEY = 'navigoal_session'
+
+const AuthContext = createContext<AuthContextValue | null>(null)
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [session, setSession] = useState<Session | null>(() => {
+    try {
+      const raw = localStorage.getItem(LS_KEY)
+      if (!raw) return null
+      const s = JSON.parse(raw) as Session
+      if (Date.now() > s.expiresAt) {
+        localStorage.removeItem(LS_KEY)
+        return null
+      }
+      return s
+    } catch {
+      return null
+    }
+  })
+
+  useEffect(() => {
+    if (!session) return
+    if (session.expiresAt - Date.now() < SEPT_JOURS_MS) {
+      const renewed = { ...session, expiresAt: Date.now() + TRENTE_JOURS_MS }
+      localStorage.setItem(LS_KEY, JSON.stringify(renewed))
+      setSession(renewed)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function connexionRapide(pseudo: string) {
+    const s: Session = {
+      id: `user-${Date.now()}`,
+      pseudo: pseudo.trim(),
+      email: '',
+      expiresAt: Date.now() + TRENTE_JOURS_MS,
+    }
+    localStorage.setItem(LS_KEY, JSON.stringify(s))
+    setSession(s)
+  }
+
+  function seDeconnecter() {
+    localStorage.removeItem(LS_KEY)
+    setSession(null)
+  }
+
+  return (
+    <AuthContext.Provider value={{ session, connexionRapide, seDeconnecter }}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used inside AuthProvider')
+  return ctx
+}
