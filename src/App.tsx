@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import EquipagePage from './pages/EquipagePage'
 import MatchsPage   from './pages/MatchsPage'
+import ModaleIdentification from './components/ModaleIdentification'
+import { useAuthStore } from './stores/authStore'
 import './styles/app.css'
 
 type Tab = 'equipage' | 'matchs' | 'carte' | 'classement'
@@ -22,9 +24,11 @@ function ClassementPage() {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('equipage')
+  const { userId, loading } = useAuthStore()
 
   return (
     <div className="app">
+      {!userId && !loading && <ModaleIdentification />}
       <main className="app-content">
         {activeTab === 'equipage'   && <EquipagePage />}
         {activeTab === 'matchs'     && <MatchsPage />}
