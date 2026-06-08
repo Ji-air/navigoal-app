@@ -4,6 +4,7 @@ import ModaleCreerLigue from '../components/ModaleCreerLigue'
 import type { AppPage } from '../App'
 import { useEquipageStore } from '../stores/equipageStore'
 import { useLigueStore } from '../stores/ligueStore'
+import { useAuthStore } from '../stores/authStore'
 import type { LiguePrive } from '../lib/supabase'
 import type { MembreScore } from '../lib/supabase-classement'
 
@@ -16,6 +17,7 @@ const DEMO_USER_ID = 'demo-user'
 
 export default function ClassementPage({ onNavigate, userId = DEMO_USER_ID }: ClassementPageProps) {
   const journee = useEquipageStore(s => s.journee)
+  const pseudo  = useAuthStore(s => s.pseudo)
 
   const pageState    = useLigueStore(s => s.pageState)
   const ligue        = useLigueStore(s => s.ligue)
@@ -66,6 +68,19 @@ export default function ClassementPage({ onNavigate, userId = DEMO_USER_ID }: Cl
 
   return (
     <div className="cl-screen">
+
+      {/* Vignette capitaine */}
+      <div className="eq-captain">
+        <div className="eq-captain-avatar">
+          <svg viewBox="0 0 24 24">
+            <path d="M2 17 C2 17 4 15 12 15 C20 15 22 17 22 17"/>
+            <path d="M12 15 L12 10"/>
+            <path d="M6 15 C6 12 12 10 12 10 C12 10 18 12 18 15"/>
+            <rect x="2" y="17" width="20" height="2.5" rx="1.2"/>
+          </svg>
+        </div>
+        <span className="eq-captain-name">{pseudo ?? 'Capitaine'}</span>
+      </div>
 
       <div className="cl-scr">
 

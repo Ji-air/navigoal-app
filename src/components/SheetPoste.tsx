@@ -151,10 +151,10 @@ export default function SheetPoste({
                   />
                 </div>
 
-                {/* Liste des joueurs déployée directement sous la carte */}
-                {(expandedA || expandedB) && (
-                  <div className="nat-lineup">
-                    {loadingJoueurs ? (
+                {/* Liste des joueurs — toujours rendu, animée via max-height */}
+                <div className={`nat-lineup${(expandedA || expandedB) ? ' open' : ''}`}>
+                  {(expandedA || expandedB) && (
+                    loadingJoueurs ? (
                       <p className="eq-hint" style={{ margin: '6px 0' }}>Chargement…</p>
                     ) : joueurs.length === 0 ? (
                       <p className="eq-hint" style={{ margin: '6px 0' }}>Aucun joueur enregistré.</p>
@@ -167,9 +167,9 @@ export default function SheetPoste({
                           </li>
                         ))}
                       </ul>
-                    )}
-                  </div>
-                )}
+                    )
+                  )}
+                </div>
               </div>
             )
           })}

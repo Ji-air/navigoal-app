@@ -484,9 +484,14 @@ html, body, #root {
 
 /* Liste joueurs dépliée directement sous la nat-card */
 .nat-lineup {
-  border-top: 1px solid rgba(0,229,204,.10);
-  padding: 4px 14px 10px;
   overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.25s ease;
+}
+.nat-lineup.open {
+  border-top: 1px solid rgba(0,229,204,.10);
+  max-height: 400px;
+  padding: 4px 14px 10px;
 }
 
 /* ─── Zone lineup (SheetLigne) ─── */
@@ -840,15 +845,14 @@ html, body, #root {
   pointer-events: none;
 }
 
-/* Dashboard — spans full width above tab bar */
+/* Dashboard — spans full width above tab bar.
+   Gradient top→bottom : transparent → opaque pour ne pas masquer la carte. */
 .ct-dashboard {
   position: absolute;
   bottom: var(--h-tab-bar);
   left: 0; right: 0;
-  padding: 12px 20px 16px;
-  background: #0D1117;
-  border-top: 1px solid rgba(0,229,204,.10);
-  border-radius: 10px 10px 0 0;
+  padding: 28px 20px 16px;
+  background: linear-gradient(to bottom, rgba(13,17,23,0) 0px, #0D1117 28px);
   z-index: 30;
 }
 
