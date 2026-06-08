@@ -345,3 +345,233 @@ html, body, #root {
   color: var(--warning);
   padding: 12px 0;
 }
+
+/* Bouton valider */
+.eq-validate {
+  padding: 14px 0 20px;
+  border-top: 1px solid rgba(0,229,204,.07);
+}
+
+.eq-validated {
+  padding: 12px 0 20px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--font-body);
+  font-size: var(--text-sm); font-weight: 500;
+  color: var(--accent);
+  letter-spacing: .06em;
+}
+
+/* ─────────────────────────────────────────────────────────
+   Bouton primaire (partagé)
+   ───────────────────────────────────────────────────────── */
+
+.btn-primary {
+  display: block; width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  color: var(--bg-base);
+  border: none; border-radius: 8px;
+  font-family: var(--font-display);
+  font-size: var(--display-sm);
+  letter-spacing: .08em;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+.btn-primary:active  { opacity: .82; }
+.btn-primary:disabled { opacity: .30; cursor: default; }
+
+/* ─────────────────────────────────────────────────────────
+   Sheets (sh-*)
+   ───────────────────────────────────────────────────────── */
+
+@keyframes sh-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sh-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0);    }
+}
+
+/* Overlay sombre derrière la sheet */
+.sh-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  bottom: var(--h-tab-bar);
+  background: rgba(3,8,16,.82);
+  backdrop-filter: blur(3px);
+  z-index: 110;
+  animation: sh-overlay-in 240ms ease;
+}
+
+/* Sheet — monte depuis le bas */
+.sh {
+  position: absolute;
+  bottom: var(--h-tab-bar);
+  left: 0; right: 0;
+  background: var(--bg-base);
+  border-radius: 16px 16px 0 0;
+  border-top: 1px solid var(--border-default);
+  max-height: 84%;
+  display: flex; flex-direction: column;
+  z-index: 120;
+  box-shadow: 0 -16px 48px rgba(0,0,0,.70);
+  animation: sh-slide-up 300ms cubic-bezier(.25,.46,.45,.94);
+}
+
+.sh-handle {
+  width: 28px; height: 3px;
+  background: rgba(0,229,204,.20);
+  border-radius: 2px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+
+.sh-hd {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid rgba(0,229,204,.07);
+  flex-shrink: 0;
+}
+
+.sh-tag {
+  font-family: var(--font-body);
+  font-size: 8px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: .16em;
+  color: rgba(0,229,204,.55);
+  margin-bottom: 4px;
+}
+
+.sh-title {
+  font-family: var(--font-display);
+  font-size: var(--display-md);
+  letter-spacing: .05em;
+  color: var(--text-primary);
+}
+
+.sh-back {
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: none; cursor: pointer;
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: var(--text-2xs); font-weight: 500;
+  letter-spacing: .10em; text-transform: uppercase;
+  padding: 0; margin-bottom: 8px;
+  opacity: .60;
+  -webkit-tap-highlight-color: transparent;
+}
+.sh-back:hover { opacity: .85; }
+
+.sh-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 12px 16px 16px;
+}
+
+/* ─── Cards de nations ─── */
+
+.nat-card {
+  background: var(--bg-surface);
+  border: 1px solid rgba(0,229,204,.08);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.nat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+}
+
+.nat-sep {
+  background: rgba(0,229,204,.08);
+  align-self: stretch;
+}
+
+.nat-btn {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 5px; padding: 14px 8px;
+  background: none; border: none;
+  cursor: pointer; width: 100%;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--transition-fast);
+}
+.nat-btn:active:not(:disabled) { background: rgba(0,229,204,.07); }
+.nat-btn--off {
+  opacity: .28;
+  cursor: default;
+}
+
+.nat-flag {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.nat-name {
+  font-family: var(--font-body);
+  font-size: var(--text-md); font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: .01em;
+  text-align: center;
+}
+
+.nat-tier {
+  font-family: var(--font-body);
+  font-size: var(--text-2xs); font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: .10em;
+  text-transform: uppercase;
+}
+
+.nat-reason {
+  font-family: var(--font-body);
+  font-size: var(--text-2xs); font-weight: 500;
+  color: rgba(240,244,248,.35);
+  letter-spacing: .06em;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ─── Zone lineup (SheetLigne) ─── */
+
+.lu-intro {
+  font-family: var(--font-body);
+  font-size: var(--text-xs); font-weight: 500;
+  color: rgba(240,244,248,.35);
+  font-style: italic;
+  padding: 4px 0 8px;
+  letter-spacing: .01em;
+}
+
+.lu-list {
+  list-style: none;
+}
+
+.lu-item {
+  display: flex;
+  justify-content: space-between; align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  font-family: var(--font-body);
+}
+.lu-item:last-child { border-bottom: none; }
+
+.lu-player {
+  font-size: var(--text-md); font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: .01em;
+}
+
+.lu-pos {
+  font-size: var(--text-xs); font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: .10em;
+  text-transform: uppercase;
+}
+
+.lu-confirm {
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  background: var(--bg-base);
+}

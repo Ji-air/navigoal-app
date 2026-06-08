@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
 import CarteFond from '../components/CarteFond'
 import PosteRow from '../components/PosteRow'
+import SheetNation from '../components/SheetNation'
+import SheetLigne from '../components/SheetLigne'
 import { useEquipageStore } from '../stores/equipageStore'
-import type { PosteKey } from '../stores/equipageStore'
+import type { PosteKey, NationDispo } from '../stores/equipageStore'
 
 /* ── Countdown gel ── */
 function formatCountdown(heureGelUtc: string | null, statutGel: string): string {
@@ -62,9 +64,15 @@ function TabClassement() {
 }
 
 export default function Equipage() {
-  const { journee, equipage, nationsDisponibles, loading, error, init } = useEquipageStore()
-  const [selectedPoste, setSelectedPoste] = useState<PosteKey | null>(null)
-  const [countdown, setCountdown]         = useState('')
+  const {
+    journee, equipage, nationsDisponibles, loading, error,
+    init, setPoste, validerEquipage,
+  } = useEquipageStore()
+
+  const [selectedPoste,  setSelectedPoste]  = useState<PosteKey | null>(null)
+  const [selectedNation, setSelectedNation] = useState<NationDispo | null>(null)
+  const [validating,     setValidating]     = useState(false)
+  const [countdown,      setCountdown]      = useState('')
   const initialized = useRef(false)
 
   // TODO: replace with useAuthStore().userId when auth is wired
@@ -88,6 +96,13 @@ export default function Equipage() {
 
   const isGele = journee?.statut_gel === 'gelé' || equipage?.statut === 'gelé'
 
+  const allFilled = !!(
+    equipage?.cap_nation_id &&
+    equipage?.barre_nation_id &&
+    equipage?.ancre_nation_id &&
+    equipage?.vigie_nation_id
+  )
+
   /* Résout un nation_id en { id, nom } depuis les nations disponibles.
      Fallback sur l'ID seul si les nations ne sont pas encore chargées. */
   function resolveNation(id: string | null): { id: string; nom: string } | null {
@@ -99,7 +114,33 @@ export default function Equipage() {
   function handlePosteClick(poste: PosteKey) {
     if (isGele) return
     setSelectedPoste(poste)
-    // TODO: ouvrir la bottom sheet de sélection de nation
+    setSelectedNation(null)  // réinitialise la sélection de nation en cas de modification
+  }
+
+  function handleClose() {
+    setSelectedPoste(null)
+    setSelectedNation(null)
+  }
+
+  function handleNationSelect(nation: NationDispo) {
+    setSelectedNation(nation)
+  }
+
+  function handleBack() {
+    setSelectedNation(null)
+  }
+
+  async function handleConfirm() {
+    if (!selectedPoste || !selectedNation) return
+    await setPoste(selectedPoste, selectedNation.id)
+    handleClose()
+  }
+
+  async function handleValidate() {
+    if (validating) return
+    setValidating(true)
+    await validerEquipage()
+    setValidating(false)
   }
 
   return (
@@ -126,7 +167,11 @@ export default function Equipage() {
       <div className="eq-crew">
         <div className="eq-crew-hd">
           <span className="eq-crew-h1">Équipage</span>
-          {journee && (
+          {journee && equipage?.statut === 'validé' ? (
+            <span className="eq-crew-status" style={{ color: 'var(--accent)' }}>
+              Validé ✓
+            </span>
+          ) : journee && (
             <span className="eq-crew-status">
               {!isGele && <span className="eq-dot" />}
               {countdown}
@@ -167,9 +212,54 @@ export default function Equipage() {
               isGele={isGele}
               onClick={() => handlePosteClick('vigie')}
             />
+
+            {/* Bouton de validation — visible quand l'équipage est complet et en brouillon */}
+            {!isGele && allFilled && equipage?.statut === 'brouillon' && (
+              <div className="eq-validate">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handleValidate}
+                  disabled={validating}
+                >
+                  {validating ? 'Validation…' : 'Valider l\'équipage'}
+                </button>
+              </div>
+            )}
+
+            {equipage?.statut === 'validé' && (
+              <div className="eq-validated">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <polyline points="20,6 9,17 4,12"/>
+                </svg>
+                Équipage validé
+              </div>
+            )}
           </>
         )}
       </div>
+
+      {/* Sheet sélection nation */}
+      {selectedPoste && !selectedNation && (
+        <SheetNation
+          poste={selectedPoste}
+          equipage={equipage}
+          nationsDisponibles={nationsDisponibles}
+          onSelect={handleNationSelect}
+          onClose={handleClose}
+        />
+      )}
+
+      {/* Sheet lineup + confirmation */}
+      {selectedPoste && selectedNation && (
+        <SheetLigne
+          poste={selectedPoste}
+          nation={selectedNation}
+          onConfirm={handleConfirm}
+          onBack={handleBack}
+        />
+      )}
 
       {/* Tab bar — stub non-fonctionnel pour les autres onglets */}
       <nav className="tab-bar" aria-label="Navigation">
