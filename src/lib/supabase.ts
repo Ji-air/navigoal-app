@@ -524,13 +524,12 @@ export async function fetchEquipage(
   utilisateurId: string,
   journeeId: string,
 ): Promise<Equipage | null> {
-  const { data, error } = await db.equipages()
+  const { data } = await db.equipages()
     .select('*')
     .eq('utilisateur_id', utilisateurId)
     .eq('journee_id', journeeId)
-    .single()
-  if (error) return null
-  return data
+    .maybeSingle()
+  return data ?? null
 }
 
 /** Récupère les matchs d'une journée avec les nations. */

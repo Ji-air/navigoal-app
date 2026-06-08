@@ -73,12 +73,15 @@ export const useEquipageStore = create<EquipageStore>()((set, get) => ({
     // Exposer la journée immédiatement — MatchsPage peut démarrer sans attendre l'équipage
     set({ journee })
 
-    // 2. Équipage existant ou création
+    // 2. Équipage existant ou création (upsert — évite le duplicate key si init() est appelé deux fois)
     let equipage = await fetchEquipage(userId, journee.id)
     if (!equipage) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (db.equipages() as any)
-        .insert({ utilisateur_id: userId, journee_id: journee.id })
+        .upsert(
+          { utilisateur_id: userId, journee_id: journee.id },
+          { onConflict: 'utilisateur_id,journee_id', ignoreDuplicates: false },
+        )
         .select()
         .single()
       if (error || !data) {
