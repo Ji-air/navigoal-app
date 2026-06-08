@@ -6,6 +6,11 @@ import { supabase } from '../lib/supabase'
 const LS_SESSION_KEY = 'ng_session'
 const LS_PENDING_KEY = 'ng_pending_pseudo'
 
+// Compte prototype partagé — tous les utilisateurs en mode prototype utilisent
+// ce compte Supabase. Le pseudo est stocké localement dans localStorage.
+const PROTO_EMAIL    = 'prototype@navigoal.dev'
+const PROTO_PASSWORD = 'navigoal-proto-2026'
+
 interface ProtoSession {
   userId:      string
   pseudo:      string
@@ -25,12 +30,12 @@ export interface AuthStore {
   signUp:          (pseudo: string, email: string) => Promise<{ error: string | null }>
   /** Variante C / compte existant : email seul → lien magique */
   signIn:          (email: string) => Promise<{ error: string | null }>
-  /** Mode prototype : pseudo seul → session Supabase anonyme réelle */
+  /** Mode prototype : pseudo seul → compte partagé prototype@navigoal.dev */
   signInPrototype: (pseudo: string) => Promise<void>
   signOut:         () => Promise<void>
 }
 
-// ── Helper ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const q = (table: string) => (supabase as any).from(table)
@@ -63,22 +68,24 @@ export const useAuthStore = create<AuthStore>()((set) => ({
     if (!_authListenerReady) {
       _authListenerReady = true
       supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('[auth] onAuthStateChange', event, session?.user?.id ?? null)
+
         if (event === 'SIGNED_IN' && session?.user) {
           const userId = session.user.id
-          let pseudo = await fetchPseudo(userId)
 
-          if (!pseudo) {
-            // Nouvel utilisateur — crée l'enregistrement public.utilisateurs
-            const pending =
-              localStorage.getItem(LS_PENDING_KEY) ??
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (session.user.user_metadata as any)?.pseudo ??
-              session.user.email?.split('@')[0] ??
-              'Capitaine'
-            await upsertUtilisateur(userId, pending)
-            localStorage.removeItem(LS_PENDING_KEY)
-            pseudo = pending
-          }
+          // LS_PENDING_KEY a la priorité sur la DB :
+          // - nouveaux utilisateurs OTP / prototype : pseudo choisi à la connexion
+          // - compte prototype partagé : la DB ne contient que le pseudo du premier utilisateur
+          const pendingPseudo = localStorage.getItem(LS_PENDING_KEY)
+          const dbPseudo      = pendingPseudo ?? await fetchPseudo(userId)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const pseudo: string = dbPseudo
+            ?? (session.user.user_metadata as any)?.pseudo
+            ?? session.user.email?.split('@')[0]
+            ?? 'Capitaine'
+
+          await upsertUtilisateur(userId, pseudo)
+          if (pendingPseudo) localStorage.removeItem(LS_PENDING_KEY)
 
           set({ userId, pseudo, loading: false, authStep: 'idle' })
         }
@@ -89,30 +96,39 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       })
     }
 
-    // 1. Session Supabase Auth active ?
+    // 1. Session Supabase Auth encore active
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.user) {
-      const pseudo = await fetchPseudo(session.user.id)
+      // Pour les sessions prototype, le pseudo de référence est dans LS_SESSION_KEY
+      // (le compte DB est partagé et ne reflète pas le pseudo de l'utilisateur courant)
+      let pseudo: string | null = null
+      try {
+        const raw = localStorage.getItem(LS_SESSION_KEY)
+        if (raw) {
+          const saved = JSON.parse(raw) as ProtoSession
+          if (saved.isPrototype) pseudo = saved.pseudo
+        }
+      } catch { /* ignore */ }
+      if (!pseudo) pseudo = await fetchPseudo(session.user.id)
       set({ userId: session.user.id, pseudo, loading: false })
       return
     }
 
-    // 2. Session anonyme expirée — marqueur isPrototype présent dans localStorage
+    // 2. Session prototype expirée — marqueur isPrototype dans localStorage
     try {
       const raw = localStorage.getItem(LS_SESSION_KEY)
       if (raw) {
         const saved = JSON.parse(raw) as ProtoSession
         if (saved.isPrototype && saved.pseudo) {
-          // Supabase n'a plus de session valide : créer une nouvelle session anonyme
-          localStorage.setItem(LS_PENDING_KEY, saved.pseudo)
-          const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously()
-          if (!anonError && anonData.session?.user) {
-            const userId = anonData.session.user.id
+          const { data: rd, error: re } = await supabase.auth.signInWithPassword({
+            email: PROTO_EMAIL, password: PROTO_PASSWORD,
+          })
+          if (!re && rd.session?.user) {
+            const userId = rd.session.user.id
             localStorage.setItem(LS_SESSION_KEY, JSON.stringify({ userId, pseudo: saved.pseudo, isPrototype: true }))
-            // onAuthStateChange (SIGNED_IN) prend le relais : upsert + setState
+            set({ userId, pseudo: saved.pseudo, loading: false })
             return
           }
-          // signInAnonymously indisponible (désactivé dans le dashboard)
           localStorage.removeItem(LS_SESSION_KEY)
         }
       }
@@ -156,22 +172,36 @@ export const useAuthStore = create<AuthStore>()((set) => ({
 
   signInPrototype: async (pseudo) => {
     set({ loading: true })
-    // LS_PENDING_KEY est lu par onAuthStateChange pour upsert le pseudo correct
+    // LS_PENDING_KEY lu par onAuthStateChange si le SIGNED_IN arrive avant setState
     localStorage.setItem(LS_PENDING_KEY, pseudo)
 
-    const { data, error } = await supabase.auth.signInAnonymously()
+    // 1. Connexion avec le compte prototype partagé
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: PROTO_EMAIL, password: PROTO_PASSWORD,
+    })
+
     if (error || !data.session?.user) {
-      // Anonymous auth désactivé dans le Dashboard Supabase
-      console.error('[auth] signInAnonymously failed:', error?.message)
+      console.error('[auth] proto signInWithPassword failed:', error?.message ?? 'no session')
       localStorage.removeItem(LS_PENDING_KEY)
       set({ loading: false })
       return
     }
 
+    // 2. userId réel depuis la session
     const userId = data.session.user.id
-    // Persister le marqueur prototype avec le vrai userId Supabase
-    localStorage.setItem(LS_SESSION_KEY, JSON.stringify({ userId, pseudo, isPrototype: true } as ProtoSession))
-    // onAuthStateChange (SIGNED_IN) prend le relais : fetchPseudo → upsert → setState
+
+    // 3. Toujours écrire le pseudo courant (compte partagé — on écrase)
+    await q('utilisateurs').upsert({ id: userId, pseudo }, { onConflict: 'id' })
+
+    // 4. Persister la session prototype localement
+    localStorage.setItem(
+      LS_SESSION_KEY,
+      JSON.stringify({ userId, pseudo, isPrototype: true } as ProtoSession),
+    )
+    localStorage.removeItem(LS_PENDING_KEY)
+
+    // 5. Mettre à jour le store
+    set({ userId, pseudo, loading: false, authStep: 'idle' })
   },
 
   signOut: async () => {
