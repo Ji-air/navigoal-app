@@ -1,0 +1,347 @@
+/* ─────────────────────────────────────────────────────────
+   Navigoal — Design System + composants
+   ───────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,400;0,500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ─── Tokens ─── */
+:root {
+  --bg-base:       #0D1117;
+  --bg-surface:    #141B24;
+  --bg-surface-2:  #111F2E;
+
+  --accent:        #00E5CC;
+  --accent-dim:    rgba(0,229,204,.08);
+  --warning:       #F0A500;
+
+  --text-primary:   #F0F4F8;
+  --text-secondary: rgba(240,244,248,.55);
+  --text-tertiary:  rgba(240,244,248,.25);
+  --text-disabled:  rgba(240,244,248,.12);
+
+  --border-subtle:  rgba(0,229,204,.06);
+  --border-default: rgba(0,229,204,.10);
+  --border-strong:  rgba(0,229,204,.22);
+
+  --tier-breeze: #8AADBB;
+  --tier-wind:   #00E5CC;
+  --tier-boost:  #F0A500;
+
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body:    'DM Mono', monospace;
+
+  --display-xs:  18px;
+  --display-sm:  22px;
+  --display-md:  28px;
+  --display-lg:  40px;
+  --display-xl:  52px;
+
+  --text-2xs:  9px;   --lh-2xs: 13px;
+  --text-xs:  10px;   --lh-xs:  14px;
+  --text-sm:  11px;   --lh-sm:  16px;
+  --text-md:  13px;   --lh-md:  20px;
+
+  --space-1:  4px;  --space-2:  8px;  --space-3: 12px;
+  --space-4: 16px;  --space-5: 20px;  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm:   6px;
+  --radius-md:   8px;
+  --radius-full: 9999px;
+
+  --h-tab-bar: 64px;
+
+  --z-map:       1;
+  --z-fade:      2;
+  --z-content:  10;
+  --z-captain: 200;
+  --z-tabbar:  100;
+
+  --transition-fast:  80ms ease;
+  --transition-base: 150ms ease;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg-base);
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─────────────────────────────────────────────────────────
+   Tab bar (commun à tous les écrans)
+   ───────────────────────────────────────────────────────── */
+
+.tab-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: var(--h-tab-bar);
+  display: flex;
+  background: var(--bg-base);
+  border-top: 1px solid var(--border-subtle);
+  z-index: var(--z-tabbar);
+}
+
+.tab-bar__item {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px;
+  color: var(--text-disabled);
+  font-family: var(--font-body);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab-bar__item--active {
+  color: var(--accent);
+  box-shadow: inset 0 2px 0 var(--accent);
+  background: rgba(0,229,204,.04);
+}
+
+/* ─────────────────────────────────────────────────────────
+   Écran Équipage (eq-*)
+   ───────────────────────────────────────────────────────── */
+
+.eq-screen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg-base);
+}
+
+/* Carte en fond */
+.eq-bg-carte {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  bottom: var(--h-tab-bar);
+  overflow: hidden;
+  z-index: var(--z-map);
+}
+
+.eq-bg-carte svg {
+  position: absolute;
+  top: -111px;
+  left: 0;
+}
+
+/* Panel équipage */
+.eq-crew {
+  position: absolute;
+  bottom: var(--h-tab-bar);
+  left: 0; right: 0;
+  z-index: var(--z-content);
+  padding: 0 20px;
+  background: var(--bg-base);
+  border-top: 1px solid rgba(0,229,204,.07);
+}
+
+.eq-crew-hd {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 20px 0 8px;
+}
+
+.eq-crew-h1 {
+  font-family: var(--font-display);
+  font-size: var(--display-lg);
+  letter-spacing: .04em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.eq-crew-status {
+  font-family: var(--font-body);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.eq-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--warning);
+  flex-shrink: 0;
+  animation: eq-blink 1.6s ease-in-out infinite;
+}
+
+@keyframes eq-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .18; }
+}
+
+/* Vignette capitaine */
+.eq-captain {
+  position: absolute;
+  top: 12px; right: 20px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 4px;
+  z-index: var(--z-captain);
+  pointer-events: none;
+}
+
+.eq-captain-avatar {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.eq-captain-avatar svg {
+  width: 20px; height: 20px;
+  stroke: var(--accent); fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round; stroke-linejoin: round;
+  opacity: .85;
+}
+
+.eq-captain-name {
+  font-family: var(--font-body);
+  font-size: 8px; font-weight: 500;
+  color: rgba(240,244,248,.40);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* ─────────────────────────────────────────────────────────
+   PosteRow (eq-row-*)
+   ───────────────────────────────────────────────────────── */
+
+.eq-row {
+  display: flex; align-items: center;
+  gap: 12px; padding: 14px 0;
+  border-top: 1px solid rgba(0,229,204,.07);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--transition-fast);
+}
+
+.eq-row:active {
+  background: rgba(0,229,204,.03);
+  margin: 0 -20px;
+  padding-left: 20px; padding-right: 20px;
+}
+
+/* Rempli */
+.eq-row--on .eq-rname { color: var(--accent); }
+.eq-row--on .eq-rico {
+  background: rgba(0,229,204,.10);
+  border-color: var(--border-strong);
+}
+.eq-row--on .eq-rnum  { color: rgba(0,229,204,.40); }
+.eq-row--on .eq-rarr  { color: rgba(0,229,204,.38); }
+
+/* Gelé vide — correspond à row--off du mockup */
+.eq-row--off {
+  opacity: .22;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Gelé rempli — interactif désactivé */
+.eq-row--frozen {
+  cursor: default;
+  pointer-events: none;
+}
+.eq-row--frozen:active { background: transparent; }
+
+/* Icône */
+.eq-rico {
+  width: 36px; height: 36px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--accent-dim);
+  border: 1px solid var(--border-default);
+}
+
+/* Texte info */
+.eq-rinfo {
+  flex: 1;
+  display: flex; flex-direction: column;
+  gap: 3px;
+}
+
+.eq-rname {
+  font-family: var(--font-display);
+  font-size: var(--display-sm);
+  letter-spacing: .05em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.eq-rsub {
+  font-family: var(--font-body);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  color: rgba(240,244,248,.40);
+  letter-spacing: .10em;
+  text-transform: uppercase;
+}
+
+/* Partie droite */
+.eq-rright {
+  display: flex; align-items: center;
+  gap: 8px; flex-shrink: 0;
+}
+
+.eq-rflag {
+  font-family: var(--font-body);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  min-width: 24px;
+  text-align: right;
+}
+
+.eq-rnum {
+  font-family: var(--font-body);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  color: rgba(240,244,248,.18);
+  letter-spacing: .06em;
+  min-width: 16px; text-align: right;
+}
+
+.eq-rarr {
+  color: rgba(240,244,248,.18);
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────────────────
+   États feedback
+   ───────────────────────────────────────────────────────── */
+
+.eq-hint {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: rgba(240,244,248,.40);
+  padding: 12px 0;
+  text-align: center;
+}
+
+.eq-error {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--warning);
+  padding: 12px 0;
+}

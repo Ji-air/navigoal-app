@@ -1,4 +1,7 @@
 import React from 'react'
+import './styles/app.css'
+import Equipage from './pages/Equipage'
+
 export default function App() {
-  return <div style={{color:'#00E5CC',fontFamily:'monospace',padding:20}}>Navigoal</div>
+  return <Equipage />
 }
