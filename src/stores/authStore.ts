@@ -6,9 +6,6 @@ import { supabase } from '../lib/supabase'
 const LS_SESSION_KEY = 'ng_session'
 const LS_PENDING_KEY = 'ng_pending_pseudo'
 
-/** userId stable utilisé en mode prototype — correspond aux mock data existantes */
-const PROTO_USER_ID = 'demo-user'
-
 interface ProtoSession {
   userId:      string
   pseudo:      string
@@ -28,8 +25,8 @@ export interface AuthStore {
   signUp:          (pseudo: string, email: string) => Promise<{ error: string | null }>
   /** Variante C / compte existant : email seul → lien magique */
   signIn:          (email: string) => Promise<{ error: string | null }>
-  /** Mode prototype : pseudo seul, session localStorage, userId fixe 'demo-user' */
-  signInPrototype: (pseudo: string) => void
+  /** Mode prototype : pseudo seul → session Supabase anonyme réelle */
+  signInPrototype: (pseudo: string) => Promise<void>
   signOut:         () => Promise<void>
 }
 
@@ -100,14 +97,23 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       return
     }
 
-    // 2. Session prototype dans localStorage ?
+    // 2. Session anonyme expirée — marqueur isPrototype présent dans localStorage
     try {
       const raw = localStorage.getItem(LS_SESSION_KEY)
       if (raw) {
-        const data = JSON.parse(raw) as ProtoSession
-        if (data.isPrototype && data.pseudo) {
-          set({ userId: PROTO_USER_ID, pseudo: data.pseudo, loading: false })
-          return
+        const saved = JSON.parse(raw) as ProtoSession
+        if (saved.isPrototype && saved.pseudo) {
+          // Supabase n'a plus de session valide : créer une nouvelle session anonyme
+          localStorage.setItem(LS_PENDING_KEY, saved.pseudo)
+          const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously()
+          if (!anonError && anonData.session?.user) {
+            const userId = anonData.session.user.id
+            localStorage.setItem(LS_SESSION_KEY, JSON.stringify({ userId, pseudo: saved.pseudo, isPrototype: true }))
+            // onAuthStateChange (SIGNED_IN) prend le relais : upsert + setState
+            return
+          }
+          // signInAnonymously indisponible (désactivé dans le dashboard)
+          localStorage.removeItem(LS_SESSION_KEY)
         }
       }
     } catch {
@@ -148,10 +154,24 @@ export const useAuthStore = create<AuthStore>()((set) => ({
     return { error: null }
   },
 
-  signInPrototype: (pseudo) => {
-    const session: ProtoSession = { userId: PROTO_USER_ID, pseudo, isPrototype: true }
-    localStorage.setItem(LS_SESSION_KEY, JSON.stringify(session))
-    set({ userId: PROTO_USER_ID, pseudo })
+  signInPrototype: async (pseudo) => {
+    set({ loading: true })
+    // LS_PENDING_KEY est lu par onAuthStateChange pour upsert le pseudo correct
+    localStorage.setItem(LS_PENDING_KEY, pseudo)
+
+    const { data, error } = await supabase.auth.signInAnonymously()
+    if (error || !data.session?.user) {
+      // Anonymous auth désactivé dans le Dashboard Supabase
+      console.error('[auth] signInAnonymously failed:', error?.message)
+      localStorage.removeItem(LS_PENDING_KEY)
+      set({ loading: false })
+      return
+    }
+
+    const userId = data.session.user.id
+    // Persister le marqueur prototype avec le vrai userId Supabase
+    localStorage.setItem(LS_SESSION_KEY, JSON.stringify({ userId, pseudo, isPrototype: true } as ProtoSession))
+    // onAuthStateChange (SIGNED_IN) prend le relais : fetchPseudo → upsert → setState
   },
 
   signOut: async () => {
