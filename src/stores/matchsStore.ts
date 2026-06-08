@@ -92,6 +92,7 @@ export const useMatchsStore = create<MatchsStore>()((set, get) => ({
   refresh: async () => {
     const { journeeId, matchs: current } = get()
     if (!journeeId || !current.length) return
+    if (journeeId.startsWith('mock-')) return
 
     const ids = current.map(m => m.id)
     const { data } = await (db.matchs() as any)

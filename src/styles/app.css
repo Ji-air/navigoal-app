@@ -76,6 +76,7 @@ html, body, #root {
   position: absolute;
   top: -111px;
   left: 0;
+  width: 100%;
 }
 
 /* Panel équipage */
@@ -485,6 +486,7 @@ html, body, #root {
 .nat-lineup {
   border-top: 1px solid rgba(0,229,204,.10);
   padding: 4px 14px 10px;
+  overflow: hidden;
 }
 
 /* ─── Zone lineup (SheetLigne) ─── */
@@ -559,7 +561,7 @@ html, body, #root {
 }
 .ms-pg-h1 {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 28px; letter-spacing: .04em;
+  font-size: 40px; letter-spacing: .04em;
   color: var(--text-primary);
   margin-bottom: 4px;
 }
@@ -581,20 +583,21 @@ html, body, #root {
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 4px;
-  padding: 14px 10px;
+  padding: 0 10px;
   border-right: 1px solid var(--border-subtle);
 }
 .m-sc-n {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 26px; line-height: 1;
+  font-size: 36px; line-height: 1;
   color: var(--accent);
-  letter-spacing: .02em;
+  letter-spacing: .01em;
+  white-space: nowrap;
 }
 .m-sc-n--ft { color: var(--text-primary); }
 .m-sc-n--ns {
-  font-size: 16px;
-  color: var(--text-secondary);
-  letter-spacing: .04em;
+  font-size: 13px;
+  color: rgba(240,244,248,.18);
+  letter-spacing: .08em;
 }
 .m-sc-live {
   display: flex; align-items: center; gap: 5px;
@@ -614,29 +617,34 @@ html, body, #root {
 
 /* Colonne nations */
 .m-nat {
-  padding: 10px 12px;
-  display: flex; flex-direction: column; gap: 6px;
-  justify-content: center;
+  display: flex; flex-direction: column;
 }
 .m-nat-row {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 12px;
+  flex: 1; min-height: 38px;
+  border-bottom: 1px solid var(--border-subtle);
   opacity: .5;
 }
-.m-nat-row--on { opacity: 1; }
-.m-nat-flag { font-size: 18px; line-height: 1; }
+.m-nat-row:last-child { border-bottom: none; }
+.m-nat-row--on {
+  opacity: 1;
+  background: rgba(0,229,204,.06);
+  border-left: 2px solid var(--accent);
+  padding-left: 10px;
+}
+.m-nat-row--on .m-nat-name { color: var(--accent); }
+.m-nat-flag { font-size: 15px; line-height: 1; flex-shrink: 0; }
 .m-nat-name {
   flex: 1;
   font-size: var(--text-sm); font-weight: 500;
   color: var(--text-primary);
+  letter-spacing: .01em;
 }
 .m-nat-role {
-  font-size: 9px; font-weight: 700;
-  color: var(--text-secondary); letter-spacing: .10em;
+  font-size: 8px; font-weight: 500;
+  color: rgba(0,229,204,.55); letter-spacing: .08em;
   text-transform: uppercase;
-  background: var(--accent-dim);
-  border: 1px solid var(--border-default);
-  border-radius: 4px;
-  padding: 1px 5px;
 }
 
 /* Section événements */
@@ -719,10 +727,10 @@ html, body, #root {
 .ms-total-row--sum {
   background: var(--accent-dim);
 }
-.ms-total-row--sum .ms-total-lbl { color: var(--text-primary); font-weight: 600; }
+.ms-total-row--sum .ms-total-lbl { color: var(--accent); font-weight: 600; }
 .ms-total-row--sum .ms-total-val {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 18px; letter-spacing: .04em;
+  font-size: 32px; letter-spacing: .04em;
   color: var(--accent);
 }
 .ms-total-lbl {
@@ -750,7 +758,7 @@ html, body, #root {
 .ct-map-outer {
   position: absolute;
   top: 0; left: 0; right: 0;
-  bottom: calc(var(--h-tab-bar) + 78px);
+  bottom: var(--h-tab-bar);
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -766,7 +774,7 @@ html, body, #root {
 /* Race segment overlay (right side, over map) */
 .ct-race-seg {
   position: absolute;
-  right: 8px;
+  right: 0;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
@@ -905,31 +913,6 @@ html, body, #root {
   height: 100%; overflow: hidden;
   background: var(--bg-base);
   position: relative;
-}
-
-/* Header */
-.cl-hd {
-  flex-shrink: 0;
-  height: 52px;
-  display: flex; align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  background: var(--bg-base);
-  border-bottom: 1px solid rgba(0,229,204,.06);
-  z-index: 10;
-}
-
-.cl-hd-logo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 19px; letter-spacing: .08em;
-  color: var(--accent);
-}
-
-.cl-hd-user {
-  font-family: var(--font-body);
-  font-size: 11px; font-weight: 500;
-  color: rgba(240,244,248,.40);
-  letter-spacing: .02em;
 }
 
 /* Scroll container */

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import TabBar from '../components/TabBar'
 import type { AppPage } from '../App'
 import { useEquipageStore } from '../stores/equipageStore'
+import { useAuthStore } from '../stores/authStore'
 import { db } from '../lib/supabase'
 import {
   TRAJECTOIRE_PATH, COTE_PATH, COTE_CLIP_D, COTE_HATCH,
@@ -139,8 +140,8 @@ function RaceSegment({ boats }: { boats: BoatInfo[] }) {
 
   return (
     <svg
-      width="120" height={SEG_H}
-      viewBox={`0 0 120 ${SEG_H}`}
+      width="72" height={SEG_H}
+      viewBox={`0 0 72 ${SEG_H}`}
       style={{ display: 'block' }}
     >
       {/* Vertical axis */}
@@ -200,6 +201,7 @@ export default function CartePage({ onNavigate }: CartePageProps) {
 
   const equipage = useEquipageStore(s => s.equipage)
   const journee  = useEquipageStore(s => s.journee)
+  const pseudo   = useAuthStore(s => s.pseudo)
 
   const [nmSelf,     setNmSelf]     = useState(MOCK_BOATS.find(b => b.isSelf)!.nm)
   const [stats,      setStats]      = useState<DashStats>(MOCK_STATS)
@@ -287,7 +289,7 @@ export default function CartePage({ onNavigate }: CartePageProps) {
               <rect x="2" y="17" width="20" height="2.5" rx="1.2"/>
             </svg>
           </div>
-          <span className="ct-captain-name">Capitaine</span>
+          <span className="ct-captain-name">{pseudo ?? 'Capitaine'}</span>
         </button>
       </div>
 

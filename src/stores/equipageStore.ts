@@ -122,9 +122,10 @@ export const useEquipageStore = create<EquipageStore>()((set, get) => ({
     const { equipage } = get()
     if (!equipage) return
 
-    // Optimistic update
     const prev = equipage
     set({ equipage: applyPoste(equipage, poste, nationId) })
+
+    if (equipage.id.startsWith('mock-')) return
 
     const updateNation = (() => {
       switch (poste) {
@@ -154,6 +155,8 @@ export const useEquipageStore = create<EquipageStore>()((set, get) => ({
 
     const prev = equipage
     set({ equipage: applyPoste(equipage, poste, null) })
+
+    if (equipage.id.startsWith('mock-')) return
 
     const clearNation = (() => {
       switch (poste) {
@@ -185,6 +188,11 @@ export const useEquipageStore = create<EquipageStore>()((set, get) => ({
     if (!cap_nation_id || !barre_nation_id || !ancre_nation_id || !vigie_nation_id) {
       set({ error: "L'équipage doit être complet pour être validé." })
       return false
+    }
+
+    if (equipage.id.startsWith('mock-')) {
+      set({ equipage: { ...equipage, statut: 'validé' } })
+      return true
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

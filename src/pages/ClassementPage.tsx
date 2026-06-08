@@ -4,7 +4,6 @@ import ModaleCreerLigue from '../components/ModaleCreerLigue'
 import type { AppPage } from '../App'
 import { useEquipageStore } from '../stores/equipageStore'
 import { useLigueStore } from '../stores/ligueStore'
-import { useAuthStore } from '../stores/authStore'
 import type { LiguePrive } from '../lib/supabase'
 import type { MembreScore } from '../lib/supabase-classement'
 
@@ -17,7 +16,6 @@ const DEMO_USER_ID = 'demo-user'
 
 export default function ClassementPage({ onNavigate, userId = DEMO_USER_ID }: ClassementPageProps) {
   const journee = useEquipageStore(s => s.journee)
-  const pseudo  = useAuthStore(s => s.pseudo) ?? 'Capitaine'
 
   const pageState    = useLigueStore(s => s.pageState)
   const ligue        = useLigueStore(s => s.ligue)
@@ -68,11 +66,6 @@ export default function ClassementPage({ onNavigate, userId = DEMO_USER_ID }: Cl
 
   return (
     <div className="cl-screen">
-
-      <header className="cl-hd">
-        <span className="cl-hd-logo">Navigoal</span>
-        <span className="cl-hd-user">{pseudo}</span>
-      </header>
 
       <div className="cl-scr">
 
