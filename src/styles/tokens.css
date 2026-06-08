@@ -1,0 +1,83 @@
+/* ============================================================
+   Navigoal — Design Tokens
+   Source de vérité : 06_visuel/TOKENS.css
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,400;0,500&display=swap');
+
+:root {
+
+  --bg-base:       #0D1117;
+  --bg-surface:    #141B24;
+  --bg-surface-2:  #111F2E;
+
+  --accent:        #00E5CC;
+  --accent-dim:    rgba(0,229,204,.08);
+  --warning:       #F0A500;
+
+  --text-primary:   #F0F4F8;
+  --text-secondary: rgba(240,244,248,.55);
+  --text-tertiary:  rgba(240,244,248,.25);
+  --text-disabled:  rgba(240,244,248,.12);
+
+  --border-subtle:  rgba(0,229,204,.06);
+  --border-default: rgba(0,229,204,.10);
+  --border-strong:  rgba(0,229,204,.22);
+
+  --tier-breeze: #8AADBB;
+  --tier-wind:   #00E5CC;
+  --tier-boost:  #F0A500;
+
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body:    'DM Mono', monospace;
+
+  --text-2xs:  9px;    --lh-2xs: 13px;
+  --text-xs:  10px;    --lh-xs:  14px;
+  --text-sm:  11px;    --lh-sm:  16px;
+  --text-md:  13px;    --lh-md:  20px;
+  --text-lg:  16px;    --lh-lg:  24px;
+
+  --display-xs:  18px;
+  --display-sm:  22px;
+  --display-md:  28px;
+  --display-lg:  40px;
+  --display-xl:  52px;
+
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --radius-sm:   6px;
+  --radius-md:   8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+  --radius-full: 9999px;
+
+  --h-tab-bar:   64px;
+  --h-header:     0px;
+  --h-row-poste: 64px;
+
+  --z-map:       1;
+  --z-fade:      2;
+  --z-content:  10;
+  --z-sheet:    20;
+  --z-dashboard: 30;
+  --z-overlay:  50;
+  --z-modal:    60;
+  --z-tabbar:  100;
+  --z-captain: 200;
+
+  --shadow-phone: 0 48px 120px rgba(0,0,0,.85), 0 0 0 1px rgba(0,229,204,.07);
+  --shadow-sheet: 0 -16px 48px rgba(0,0,0,.70);
+
+  --transition-fast:   80ms ease;
+  --transition-base:  150ms ease;
+  --transition-slow:  300ms ease;
+
+}

@@ -508,15 +508,15 @@ export type NotificationEnvoyee = Tables['notifications_envoyees']['Row']
 // =========================================================
 
 /** Récupère la journée courante (statut_gel = ouvert, numero le plus bas). */
-export async function fetchJourneeCourante(): Promise<JourneeNavigoal | null> {
+export async function fetchJourneeCourante(): Promise<{ data: JourneeNavigoal | null; error: string | null }> {
   const { data, error } = await db.journees()
     .select('*')
     .eq('statut_gel', 'ouvert')
     .order('numero', { ascending: true })
     .limit(1)
     .single()
-  if (error) return null
-  return data
+  if (error) return { data: null, error: error.message }
+  return { data, error: null }
 }
 
 /** Récupère l'équipage d'un utilisateur pour une journée donnée. */

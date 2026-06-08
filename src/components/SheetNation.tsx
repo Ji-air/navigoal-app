@@ -18,9 +18,9 @@ const POSTE_LABEL: Record<PosteKey, string> = {
 }
 
 const PALIER_NM: Record<PalierType, string> = {
-  Breeze: '8nm',
-  Wind:   '22nm',
-  Boost:  '55nm',
+  Breeze: '12nm',
+  Wind:   '28nm',
+  Boost:  '50nm',
 }
 
 /* Drapeaux emoji pour les nations CM2026 les plus probables.
@@ -38,6 +38,7 @@ const FLAG_MAP: Record<string, string> = {
   'Colombie':        '🇨🇴',
   'Mexique':         '🇲🇽',
   'États-Unis':      '🇺🇸',
+  'USA':             '🇺🇸',
   'Canada':          '🇨🇦',
   'Maroc':           '🇲🇦',
   'Sénégal':         '🇸🇳',

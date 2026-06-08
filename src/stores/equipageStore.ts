@@ -6,6 +6,7 @@ import {
   fetchMatchsJournee,
 } from '../lib/supabase'
 import type { JourneeNavigoal, Equipage, PalierType } from '../lib/supabase'
+import { MOCK_JOURNEE, MOCK_EQUIPAGE, MOCK_NATIONS_DISPO } from '../data/journee'
 
 export type PosteKey = 'cap' | 'barre' | 'ancre' | 'vigie'
 
@@ -31,18 +32,6 @@ interface EquipageStore {
   clearError:       () => void
 }
 
-function posteField(poste: PosteKey): keyof Pick<
-  Equipage,
-  'cap_nation_id' | 'barre_nation_id' | 'ancre_nation_id' | 'vigie_nation_id'
-> {
-  const map = {
-    cap:   'cap_nation_id',
-    barre: 'barre_nation_id',
-    ancre: 'ancre_nation_id',
-    vigie: 'vigie_nation_id',
-  } as const
-  return map[poste]
-}
 
 function applyPoste(
   eq: Equipage,
@@ -68,21 +57,32 @@ export const useEquipageStore = create<EquipageStore>()((set, get) => ({
     set({ loading: true, error: null })
 
     // 1. Journée courante
-    const journee = await fetchJourneeCourante()
+    const { data: journee, error: journeeError } = await fetchJourneeCourante()
     if (!journee) {
-      set({ loading: false, error: 'Aucune journée en cours.' })
+      // Fallback local — Supabase inaccessible (RLS, réseau, env de dev)
+      set({
+        journee:            MOCK_JOURNEE,
+        equipage:           MOCK_EQUIPAGE,
+        nationsDisponibles: MOCK_NATIONS_DISPO,
+        loading:            false,
+        error:              `[dev] Supabase: ${journeeError ?? 'journée introuvable'} — données mock actives`,
+      })
       return
     }
+
+    // Exposer la journée immédiatement — MatchsPage peut démarrer sans attendre l'équipage
+    set({ journee })
 
     // 2. Équipage existant ou création
     let equipage = await fetchEquipage(userId, journee.id)
     if (!equipage) {
-      const { data, error } = await db.equipages()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (db.equipages() as any)
         .insert({ utilisateur_id: userId, journee_id: journee.id })
         .select()
         .single()
       if (error || !data) {
-        set({ loading: false, error: "Impossible de créer l'équipage." })
+        set({ loading: false, error: error?.message ?? "Impossible de créer l'équipage." })
         return
       }
       equipage = data
@@ -126,9 +126,17 @@ export const useEquipageStore = create<EquipageStore>()((set, get) => ({
     const prev = equipage
     set({ equipage: applyPoste(equipage, poste, nationId) })
 
-    const field = posteField(poste)
-    const { data, error } = await db.equipages()
-      .update({ [field]: nationId })
+    const updateNation = (() => {
+      switch (poste) {
+        case 'cap':   return { cap_nation_id: nationId }
+        case 'barre': return { barre_nation_id: nationId }
+        case 'ancre': return { ancre_nation_id: nationId }
+        case 'vigie': return { vigie_nation_id: nationId }
+      }
+    })()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (db.equipages() as any)
+      .update(updateNation)
       .eq('id', equipage.id)
       .select()
       .single()
@@ -147,9 +155,17 @@ export const useEquipageStore = create<EquipageStore>()((set, get) => ({
     const prev = equipage
     set({ equipage: applyPoste(equipage, poste, null) })
 
-    const field = posteField(poste)
-    const { data, error } = await db.equipages()
-      .update({ [field]: null })
+    const clearNation = (() => {
+      switch (poste) {
+        case 'cap':   return { cap_nation_id: null }
+        case 'barre': return { barre_nation_id: null }
+        case 'ancre': return { ancre_nation_id: null }
+        case 'vigie': return { vigie_nation_id: null }
+      }
+    })()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (db.equipages() as any)
+      .update(clearNation)
       .eq('id', equipage.id)
       .select()
       .single()
@@ -171,7 +187,8 @@ export const useEquipageStore = create<EquipageStore>()((set, get) => ({
       return false
     }
 
-    const { data, error } = await db.equipages()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (db.equipages() as any)
       .update({ statut: 'validé' })
       .eq('id', equipage.id)
       .select()
