@@ -7,6 +7,7 @@ interface PosteRowProps {
   poste:   PosteId
   nation:  Nation | null
   isGele?: boolean
+  isOpen?: boolean
   onClick: () => void
 }
 
@@ -150,7 +151,7 @@ function abrev(nom: string) {
   return nom.slice(0, 3).toUpperCase()
 }
 
-export default function PosteRow({ poste, nation, isGele = false, onClick }: PosteRowProps) {
+export default function PosteRow({ poste, nation, isGele = false, isOpen = false, onClick }: PosteRowProps) {
   const { label, sub, num } = POSTE_META[poste]
   const Icon = ICONS[poste]
 
@@ -159,9 +160,9 @@ export default function PosteRow({ poste, nation, isGele = false, onClick }: Pos
 
   const rowClass = [
     'eq-row',
-    isOn   ? 'eq-row--on'     : '',
-    isOff  ? 'eq-row--off'    : '',
-    isGele && isOn ? 'eq-row--frozen' : '',
+    (isOn || isOpen) ? 'eq-row--on'     : '',
+    isOff            ? 'eq-row--off'    : '',
+    isGele && isOn   ? 'eq-row--frozen' : '',
   ].filter(Boolean).join(' ')
 
   return (

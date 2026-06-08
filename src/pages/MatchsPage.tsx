@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { useMatchsStore } from '../stores/matchsStore'
 import { useEquipageStore } from '../stores/equipageStore'
+import { useAuthStore } from '../stores/authStore'
 import MatchCard from '../components/MatchCard'
 import TabBar from '../components/TabBar'
 import type { AppPage } from '../App'
@@ -16,6 +17,7 @@ const STATUT_ORDER: Record<string, number> = {
 export default function MatchsPage({ onNavigate }: MatchsPageProps) {
   const { journee, equipage, loading: equipageLoading, error: equipageError } = useEquipageStore()
   const { matchs, impulsions, loading, error, init, startPolling, stopPolling } = useMatchsStore()
+  const pseudo = useAuthStore(s => s.pseudo)
 
   useEffect(() => {
     if (journee?.id) void init(journee.id)
@@ -52,6 +54,19 @@ export default function MatchsPage({ onNavigate }: MatchsPageProps) {
 
   return (
     <div className="ms-screen">
+
+      {/* Vignette capitaine */}
+      <div className="eq-captain">
+        <div className="eq-captain-avatar">
+          <svg viewBox="0 0 24 24">
+            <path d="M2 17 C2 17 4 15 12 15 C20 15 22 17 22 17"/>
+            <path d="M12 15 L12 10"/>
+            <path d="M6 15 C6 12 12 10 12 10 C12 10 18 12 18 15"/>
+            <rect x="2" y="17" width="20" height="2.5" rx="1.2"/>
+          </svg>
+        </div>
+        <span className="eq-captain-name">{pseudo ?? 'Capitaine'}</span>
+      </div>
 
       <div className="ms-scr">
         <div className="ms-pg-label">

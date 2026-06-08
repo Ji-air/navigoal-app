@@ -132,24 +132,28 @@ export default function Equipage({ onNavigate }: EquipageProps) {
               poste="cap"
               nation={resolveNation(equipage?.cap_nation_id ?? null)}
               isGele={isGele}
+              isOpen={selectedPoste === 'cap'}
               onClick={() => handlePosteClick('cap')}
             />
             <PosteRow
               poste="barre"
               nation={resolveNation(equipage?.barre_nation_id ?? null)}
               isGele={isGele}
+              isOpen={selectedPoste === 'barre'}
               onClick={() => handlePosteClick('barre')}
             />
             <PosteRow
               poste="ancre"
               nation={resolveNation(equipage?.ancre_nation_id ?? null)}
               isGele={isGele}
+              isOpen={selectedPoste === 'ancre'}
               onClick={() => handlePosteClick('ancre')}
             />
             <PosteRow
               poste="vigie"
               nation={resolveNation(equipage?.vigie_nation_id ?? null)}
               isGele={isGele}
+              isOpen={selectedPoste === 'vigie'}
               onClick={() => handlePosteClick('vigie')}
             />
 
