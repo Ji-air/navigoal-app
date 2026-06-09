@@ -279,18 +279,17 @@ export default function CartePage({ onNavigate }: CartePageProps) {
       {/* ── HUD (full-width overlay) ────────────────────────────────────────── */}
       <div className="ct-hud" aria-hidden="true">
         <span className="ct-hud-j">Journée {numJournee}</span>
-        <button type="button" className="ct-captain" onClick={recenter}>
-          <div className="ct-captain-avatar">
-            <svg viewBox="0 0 24 24" width="17" height="17"
-              strokeWidth="1.5" stroke="#00E5CC" fill="none"
-              strokeLinecap="round" strokeLinejoin="round">
+        <button type="button" className="eq-captain" onClick={recenter}
+          style={{ pointerEvents: 'auto', cursor: 'pointer' }}>
+          <div className="eq-captain-avatar">
+            <svg viewBox="0 0 24 24">
               <path d="M2 17 C2 17 4 15 12 15 C20 15 22 17 22 17"/>
               <path d="M12 15 L12 10"/>
               <path d="M6 15 C6 12 12 10 12 10 C12 10 18 12 18 15"/>
               <rect x="2" y="17" width="20" height="2.5" rx="1.2"/>
             </svg>
           </div>
-          <span className="ct-captain-name">{pseudo ?? 'Capitaine'}</span>
+          <span className="eq-captain-name">{pseudo ?? 'Capitaine'}</span>
         </button>
       </div>
 
@@ -421,7 +420,7 @@ export default function CartePage({ onNavigate }: CartePageProps) {
 
         {/* Compass */}
         <div className="ct-compass" aria-hidden="true">
-          <svg width="44" height="48" viewBox="-22 -26 44 48">
+          <svg width="64" height="64" viewBox="-22 -26 44 48">
             <circle cx="0" cy="0" r="18" fill="none" stroke="rgba(232,237,242,0.25)" strokeWidth="0.8"/>
             <circle cx="0" cy="0" r="2.5" fill="rgba(232,237,242,0.55)"/>
             <polygon points="0,-18 -4,-8 0,-12 4,-8" fill="rgba(232,237,242,0.80)"/>
