@@ -15,9 +15,10 @@ interface CartePageProps {
 
 // ── Geometry ──────────────────────────────────────────────────────────────────
 
-const CENTRE_Y = 356   // viewport y at which the player's boat is anchored
+const CENTRE_Y  = 356   // viewport y at which the player's boat is anchored
+const SVG_BOTTOM = 2700  // SVG y of the boat at 0nm (start of race)
 
-function nmToSvgY(nm: number): number { return SVG_H - nm * NM_TO_PX }
+function nmToSvgY(nm: number): number { return SVG_BOTTOM - nm * NM_TO_PX }
 function clamp(v: number, lo: number, hi: number): number { return Math.max(lo, Math.min(hi, v)) }
 
 // ── SVG DOM helpers ────────────────────────────────────────────────────────────
@@ -304,8 +305,8 @@ export default function CartePage({ onNavigate }: CartePageProps) {
       >
         <div className="ct-map-inner" style={{ transform: `translateY(${translateY}px)` }}>
           <svg
-            width={SVG_W} height={3580}
-            viewBox={`0 0 ${SVG_W} 3580`}
+            width={SVG_W} height={SVG_H}
+            viewBox={`0 0 ${SVG_W} ${SVG_H}`}
             xmlns="http://www.w3.org/2000/svg"
             style={{ display: 'block' }}
           >
@@ -352,8 +353,6 @@ export default function CartePage({ onNavigate }: CartePageProps) {
 
             {/* Background */}
             <rect width={SVG_W} height={SVG_H} fill="#0D1117"/>
-            {/* Bottom margin — 430px padding so the map is visible at 0nm */}
-            <rect width={390} height={430} y={3150} fill="#0D1117"/>
 
             {/* Concentric glow zones around trajectory */}
             <path d={TRAJECTOIRE_PATH} fill="none" stroke="rgba(0,229,204,0.040)" strokeWidth="55"  strokeLinecap="round"/>
