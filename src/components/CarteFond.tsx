@@ -1,115 +1,215 @@
-import React from 'react'
+import React, { memo, useEffect, useRef, useState } from 'react'
+import {
+  TRAJECTOIRE_PATH, COTE_PATH, COTE_CLIP_D, COTE_HATCH,
+  SVG_W, NM_TO_PX,
+} from '../lib/generer-trajectoire'
+import { useAuthStore } from '../stores/authStore'
+import { supabase } from '../lib/supabase'
+
+// ── Geometry (same as CartePage) ──────────────────────────────────────────────
+
+const CENTRE_Y   = 356
+const SVG_BOTTOM = 2700
+const VIEW_H     = 724
+
+function nmToSvgY(nm: number) { return SVG_BOTTOM - nm * NM_TO_PX }
+
+// ── SVG DOM helpers ───────────────────────────────────────────────────────────
+
+function lenAtY(path: SVGPathElement, targetY: number): number {
+  const total = path.getTotalLength()
+  let lo = 0, hi = total
+  for (let i = 0; i < 64; i++) {
+    const mid = (lo + hi) / 2
+    const { y } = path.getPointAtLength(mid)
+    if (Math.abs(y - targetY) < 0.15) return mid
+    if (y > targetY) lo = mid
+    else hi = mid
+  }
+  return (lo + hi) / 2
+}
+
+function computeBoatTransform(
+  path: SVGPathElement, len: number, halfH: number, scale: number,
+): string {
+  const total  = path.getTotalLength()
+  const pPoupe = path.getPointAtLength(Math.max(0, len - halfH))
+  const pProue = path.getPointAtLength(Math.min(total, len + halfH))
+  const cx  = (pPoupe.x + pProue.x) / 2
+  const cy  = (pPoupe.y + pProue.y) / 2
+  const ang = Math.atan2(pProue.x - pPoupe.x, pPoupe.y - pProue.y) * 180 / Math.PI
+  return `translate(${cx.toFixed(1)},${cy.toFixed(1)}) rotate(${ang.toFixed(1)}) scale(${scale})`
+}
+
+// ── Demo fallback (pas de ligue) ──────────────────────────────────────────────
+
+const DEMO_ADVERSAIRES = [
+  { nm: 320 },
+  { nm: 240 },
+  { nm: 80  },
+  { nm: 40  },
+]
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface BoatTf {
+  isSelf:    boolean
+  transform: string
+}
 
 interface CarteFondProps {
   visible?: boolean
 }
 
-/* SVG de fond porté depuis screen mockup/V3/eq1_vide_carte_bg.html.
-   Rendu statique : pas de bateaux ni de trajectoires pour l'instant. */
-export default function CarteFond({ visible = true }: CarteFondProps) {
+// ── Component ─────────────────────────────────────────────────────────────────
+
+function CarteFond({ visible = true }: CarteFondProps) {
+  const trajRef = useRef<SVGPathElement>(null)
+  const userId  = useAuthStore(s => s.userId)
+
+  const [nmSelf,      setNmSelf]      = useState(0)
+  const [adversaires, setAdversaires] = useState<{ nm: number }[]>(DEMO_ADVERSAIRES)
+  const [boatTfs,     setBoatTfs]     = useState<BoatTf[]>([])
+
+  // ── Fetch positions une seule fois au montage ─────────────────────────────
+  useEffect(() => {
+    if (!userId) return
+    void (async () => {
+      // 1. Position du joueur
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: selfBoat } = await (supabase as any)
+        .from('bateaux')
+        .select('position_actuelle_nm')
+        .eq('utilisateur_id', userId)
+        .maybeSingle()
+      if (selfBoat?.position_actuelle_nm != null) {
+        setNmSelf(selfBoat.position_actuelle_nm as number)
+      }
+
+      // 2. Ligue du joueur
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: membreRow } = await (supabase as any)
+        .from('membres_ligue')
+        .select('ligue_id')
+        .eq('utilisateur_id', userId)
+        .limit(1)
+        .maybeSingle()
+
+      if (!membreRow?.ligue_id) return
+
+      // 3. Positions des adversaires de la ligue
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: membresData } = await (supabase as any)
+        .from('membres_ligue')
+        .select('utilisateur_id, bateau:bateaux(position_actuelle_nm)')
+        .eq('ligue_id', membreRow.ligue_id)
+
+      if (!membresData?.length) return
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const advs = (membresData as any[])
+        .filter((m: any) => m.utilisateur_id !== userId)
+        .map((m: any) => ({ nm: m.bateau?.position_actuelle_nm ?? 0 }))
+      if (advs.length > 0) setAdversaires(advs)
+    })()
+  }, [userId])
+
+  // ── Calcul des transforms bateaux après montage du path ───────────────────
+  useEffect(() => {
+    const path = trajRef.current
+    if (!path) return
+    const all = [
+      { nm: nmSelf, isSelf: true },
+      ...adversaires.map(a => ({ nm: a.nm, isSelf: false })),
+    ]
+    setBoatTfs(all.map(b => ({
+      isSelf:    b.isSelf,
+      transform: computeBoatTransform(
+        path,
+        lenAtY(path, nmToSvgY(b.nm)),
+        b.isSelf ? 25.56 : 19.88,
+        b.isSelf ? 1.8   : 1.4,
+      ),
+    })))
+  }, [nmSelf, adversaires])
+
   if (!visible) return null
+
+  const translateY = CENTRE_Y - nmToSvgY(nmSelf)
 
   return (
     <div className="eq-bg-carte">
       <svg
-        id="carte"
-        width="390"
-        height="724"
-        viewBox="0 0 390 724"
+        width={SVG_W} height={VIEW_H}
+        viewBox={`0 0 ${SVG_W} ${VIEW_H}`}
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          <filter id="coast-l" x="-20%" y="-2%" width="140%" height="104%">
-            <feTurbulence
-              type="turbulence"
-              baseFrequency="0.022 0.014"
-              numOctaves={4}
-              seed={4}
-              result="noise"
-            />
-            <feDisplacementMap
-              in="SourceGraphic"
-              in2="noise"
-              scale={14}
-              xChannelSelector="R"
-              yChannelSelector="G"
-            />
+          <filter id="cf-coast-l" x="-20%" y="-2%" width="140%" height="104%">
+            <feTurbulence type="turbulence" baseFrequency="0.022 0.014"
+              numOctaves={4} seed={4} result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale={14}
+              xChannelSelector="R" yChannelSelector="G"/>
           </filter>
-
-          <clipPath id="clip-coast-l">
-            <path d="M 47,724 C 64,688 72,648 69,608
-              C 66,568 55,543 36,513
-              C 20,486 16,458 25,428
-              C 34,398 43,383 47,356
-              C 51,329 58,306 67,276
-              C 77,246 82,214 76,178
-              C 71,142 60,122 47,96
-              C 34,70 27,44 29,12 L 0,12 L 0,724 Z"/>
+          <clipPath id="cf-clip-coast-l">
+            <path d={COTE_CLIP_D}/>
           </clipPath>
         </defs>
 
-        {/* Fond */}
-        <rect width="390" height="724" fill="#0D1117"/>
+        {/* Fond fixe */}
+        <rect width={SVG_W} height={VIEW_H} fill="#0D1117"/>
 
-        {/* Zones concentriques */}
-        <path
-          d="M 195,724 C 225,688 240,648 235,608 C 230,568 210,543 175,513 C 145,486 138,458 155,428 C 172,398 188,383 195,356 C 202,329 215,306 232,276 C 249,246 258,214 248,178 C 238,142 218,122 195,96 C 172,70 158,44 162,12"
-          fill="none" stroke="rgba(0,229,204,0.042)" strokeWidth="55" strokeLinecap="round"/>
-        <path
-          d="M 195,724 C 225,688 240,648 235,608 C 230,568 210,543 175,513 C 145,486 138,458 155,428 C 172,398 188,383 195,356 C 202,329 215,306 232,276 C 249,246 258,214 248,178 C 238,142 218,122 195,96 C 172,70 158,44 162,12"
-          fill="none" stroke="rgba(0,229,204,0.025)" strokeWidth="110" strokeLinecap="round"/>
-        <path
-          d="M 195,724 C 225,688 240,648 235,608 C 230,568 210,543 175,513 C 145,486 138,458 155,428 C 172,398 188,383 195,356 C 202,329 215,306 232,276 C 249,246 258,214 248,178 C 238,142 218,122 195,96 C 172,70 158,44 162,12"
-          fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="180" strokeLinecap="round"/>
-        <path
-          d="M 195,724 C 225,688 240,648 235,608 C 230,568 210,543 175,513 C 145,486 138,458 155,428 C 172,398 188,383 195,356 C 202,329 215,306 232,276 C 249,246 258,214 248,178 C 238,142 218,122 195,96 C 172,70 158,44 162,12"
-          fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="260" strokeLinecap="round"/>
+        {/* Contenu de la carte — cadré sur la position du joueur */}
+        <g transform={`translate(0, ${translateY})`}>
 
-        {/* Côte gauche — contour teal */}
-        <path
-          d="M 47,724 C 64,688 72,648 69,608 C 66,568 55,543 36,513 C 20,486 16,458 25,428 C 34,398 43,383 47,356 C 51,329 58,306 67,276 C 77,246 82,214 76,178 C 71,142 60,122 47,96 C 34,70 27,44 29,12"
-          fill="none"
-          stroke="rgba(0,229,204,0.08)"
-          strokeWidth="4"
-          strokeLinecap="round"
-          filter="url(#coast-l)"/>
+          {/* Zones concentriques autour de la trajectoire */}
+          <path d={TRAJECTOIRE_PATH} fill="none"
+            stroke="rgba(0,229,204,0.040)" strokeWidth="55"  strokeLinecap="round"/>
+          <path d={TRAJECTOIRE_PATH} fill="none"
+            stroke="rgba(0,229,204,0.022)" strokeWidth="110" strokeLinecap="round"/>
+          <path d={TRAJECTOIRE_PATH} fill="none"
+            stroke="rgba(0,0,0,0.05)"     strokeWidth="180" strokeLinecap="round"/>
 
-        {/* Côte gauche — ligne lumineuse */}
-        <path
-          d="M 47,724 C 64,688 72,648 69,608 C 66,568 55,543 36,513 C 20,486 16,458 25,428 C 34,398 43,383 47,356 C 51,329 58,306 67,276 C 77,246 82,214 76,178 C 71,142 60,122 47,96 C 34,70 27,44 29,12"
-          fill="none"
-          stroke="rgba(240,244,248,0.10)"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          filter="url(#coast-l)"/>
+          {/* Côte gauche */}
+          <path d={COTE_PATH} fill="none"
+            stroke="rgba(0,229,204,0.08)"   strokeWidth="4"   strokeLinecap="round"
+            filter="url(#cf-coast-l)"/>
+          <path d={COTE_PATH} fill="none"
+            stroke="rgba(240,244,248,0.10)" strokeWidth="1.5" strokeLinecap="round"
+            filter="url(#cf-coast-l)"/>
+          <g clipPath="url(#cf-clip-coast-l)">
+            {COTE_HATCH.map(({ y0, opacity }, i) => (
+              <line key={i}
+                x1="0" y1={y0} x2={SVG_W} y2={y0 + SVG_W}
+                stroke={`rgba(0,229,204,${opacity})`} strokeWidth="0.6"/>
+            ))}
+          </g>
 
-        {/* Hachures clippées */}
-        <g clipPath="url(#clip-coast-l)">
-          <line x1="0" y1="-390" x2="390" y2="0"   stroke="rgba(0,229,204,0.076)" strokeWidth="0.6"/>
-          <line x1="0" y1="-354" x2="390" y2="36"  stroke="rgba(0,229,204,0.061)" strokeWidth="0.6"/>
-          <line x1="0" y1="-318" x2="390" y2="72"  stroke="rgba(0,229,204,0.079)" strokeWidth="0.6"/>
-          <line x1="0" y1="-282" x2="390" y2="108" stroke="rgba(0,229,204,0.086)" strokeWidth="0.6"/>
-          <line x1="0" y1="-246" x2="390" y2="144" stroke="rgba(0,229,204,0.067)" strokeWidth="0.6"/>
-          <line x1="0" y1="-210" x2="390" y2="180" stroke="rgba(0,229,204,0.059)" strokeWidth="0.6"/>
-          <line x1="0" y1="-174" x2="390" y2="216" stroke="rgba(0,229,204,0.051)" strokeWidth="0.6"/>
-          <line x1="0" y1="-138" x2="390" y2="252" stroke="rgba(0,229,204,0.076)" strokeWidth="0.6"/>
-          <line x1="0" y1="-102" x2="390" y2="288" stroke="rgba(0,229,204,0.059)" strokeWidth="0.6"/>
-          <line x1="0" y1="-66"  x2="390" y2="324" stroke="rgba(0,229,204,0.082)" strokeWidth="0.6"/>
-          <line x1="0" y1="-30"  x2="390" y2="360" stroke="rgba(0,229,204,0.082)" strokeWidth="0.6"/>
-          <line x1="0" y1="6"    x2="390" y2="396" stroke="rgba(0,229,204,0.064)" strokeWidth="0.6"/>
-          <line x1="0" y1="42"   x2="390" y2="432" stroke="rgba(0,229,204,0.088)" strokeWidth="0.6"/>
-          <line x1="0" y1="78"   x2="390" y2="468" stroke="rgba(0,229,204,0.054)" strokeWidth="0.6"/>
-          <line x1="0" y1="114"  x2="390" y2="504" stroke="rgba(0,229,204,0.084)" strokeWidth="0.6"/>
-          <line x1="0" y1="150"  x2="390" y2="540" stroke="rgba(0,229,204,0.082)" strokeWidth="0.6"/>
-          <line x1="0" y1="186"  x2="390" y2="576" stroke="rgba(0,229,204,0.071)" strokeWidth="0.6"/>
-          <line x1="0" y1="222"  x2="390" y2="612" stroke="rgba(0,229,204,0.065)" strokeWidth="0.6"/>
-          <line x1="0" y1="258"  x2="390" y2="648" stroke="rgba(0,229,204,0.083)" strokeWidth="0.6"/>
-          <line x1="0" y1="294"  x2="390" y2="684" stroke="rgba(0,229,204,0.084)" strokeWidth="0.6"/>
-          <line x1="0" y1="330"  x2="390" y2="720" stroke="rgba(0,229,204,0.078)" strokeWidth="0.6"/>
-          <line x1="0" y1="366"  x2="390" y2="756" stroke="rgba(0,229,204,0.059)" strokeWidth="0.6"/>
-          <line x1="0" y1="402"  x2="390" y2="792" stroke="rgba(0,229,204,0.053)" strokeWidth="0.6"/>
+          {/* Path de référence caché — utilisé pour les calculs DOM */}
+          <path ref={trajRef} d={TRAJECTOIRE_PATH} fill="none" visibility="hidden"/>
+
+          {/* Bateaux */}
+          {boatTfs.map((b, i) =>
+            b.isSelf ? (
+              <g key={i} transform={b.transform}>
+                <path
+                  d="M 0,-14.2 C -2.2,-11.6 -4.9,-6.7 -5.3,0 C -5.8,5.3 -4.9,11.1 -4.4,14.2 L 4.4,14.2 C 4.9,11.1 5.8,5.3 5.3,0 C 4.9,-6.7 2.2,-11.6 0,-14.2 Z"
+                  fill="#00E5CC" opacity=".90"/>
+                <path
+                  d="M 0,-10.7 C -1.3,-8 -2.9,-4.4 -3.1,0 C -3.3,4.4 -2.7,9.8 -2.2,12.4 L 2.2,12.4 C 2.7,9.8 3.3,4.4 3.1,0 C 2.9,-4.4 1.3,-8 0,-10.7 Z"
+                  fill="rgba(0,0,0,.28)"/>
+              </g>
+            ) : (
+              <g key={i} transform={b.transform}>
+                <path
+                  d="M 0,-11.4 C -1.8,-9.3 -3.9,-5.4 -4.2,0 C -4.6,4.2 -3.9,8.9 -3.5,11.4 L 3.5,11.4 C 3.9,8.9 4.6,4.2 4.2,0 C 3.9,-5.4 1.8,-9.3 0,-11.4 Z"
+                  fill="rgba(138,173,187,0.50)"/>
+              </g>
+            )
+          )}
         </g>
       </svg>
     </div>
   )
 }
+
+export default memo(CarteFond)
