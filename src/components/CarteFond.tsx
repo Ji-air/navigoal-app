@@ -29,6 +29,16 @@ function lenAtY(path: SVGPathElement, targetY: number): number {
   return (lo + hi) / 2
 }
 
+function subPath(path: SVGPathElement, lenA: number, lenB: number): string {
+  const lo = Math.min(lenA, lenB), hi = Math.max(lenA, lenB)
+  let d = ''
+  for (let i = 0; i <= 80; i++) {
+    const pt = path.getPointAtLength(lo + i * (hi - lo) / 80)
+    d += `${i === 0 ? 'M' : 'L'} ${pt.x.toFixed(1)},${pt.y.toFixed(1)} `
+  }
+  return d
+}
+
 function computeBoatTransform(
   path: SVGPathElement, len: number, halfH: number, scale: number,
 ): string {
@@ -55,6 +65,7 @@ const DEMO_ADVERSAIRES = [
 interface BoatTf {
   isSelf:    boolean
   transform: string
+  trailD:    string
 }
 
 interface CarteFondProps {
@@ -125,15 +136,14 @@ function CarteFond({ visible = true }: CarteFondProps) {
       { nm: nmSelf, isSelf: true },
       ...adversaires.map(a => ({ nm: a.nm, isSelf: false })),
     ]
-    setBoatTfs(all.map(b => ({
-      isSelf:    b.isSelf,
-      transform: computeBoatTransform(
-        path,
-        lenAtY(path, nmToSvgY(b.nm)),
-        b.isSelf ? 25.56 : 19.88,
-        b.isSelf ? 1.8   : 1.4,
-      ),
-    })))
+    setBoatTfs(all.map(b => {
+      const len = lenAtY(path, nmToSvgY(b.nm))
+      return {
+        isSelf:    b.isSelf,
+        transform: computeBoatTransform(path, len, b.isSelf ? 25.56 : 19.88, b.isSelf ? 1.8 : 1.4),
+        trailD:    subPath(path, 0, len),
+      }
+    }))
   }, [nmSelf, adversaires, pathReady])
 
   if (!visible) return null
@@ -190,6 +200,20 @@ function CarteFond({ visible = true }: CarteFondProps) {
 
           {/* Path de référence caché — utilisé pour les calculs DOM */}
           <path ref={trajRef} d={TRAJECTOIRE_PATH} fill="none" visibility="hidden"/>
+
+          {/* Sillages */}
+          <g>
+            {boatTfs.map((b, i) =>
+              b.trailD ? (
+                <path key={i} d={b.trailD} fill="none"
+                  stroke={b.isSelf ? '#00E5CC' : 'rgba(138,173,187,0.30)'}
+                  strokeWidth={b.isSelf ? 1.5 : 0.8}
+                  strokeDasharray={b.isSelf ? '7 5' : '3 5'}
+                  opacity={b.isSelf ? 0.35 : 0.25}
+                />
+              ) : null
+            )}
+          </g>
 
           {/* Bateaux */}
           {boatTfs.map((b, i) =>
