@@ -755,7 +755,7 @@ html, body, #root {
   background: #0D1117;
 }
 
-/* Full-width map container — clips the 3150 px tall SVG */
+/* Full-width map container — clips the windowed SVG */
 .ct-map-outer {
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -765,11 +765,11 @@ html, body, #root {
   -webkit-user-select: none;
 }
 
-/* Scrollable wrapper — translateY applied here */
-.ct-map-inner {
+/* CarteBase SVG fills the map container */
+.ct-map-outer > svg {
   position: absolute;
-  top: 0; left: 0; right: 0;
-  will-change: transform;
+  top: 0; left: 0;
+  width: 100%;
 }
 
 /* Race segment overlay (right side, over map) */
