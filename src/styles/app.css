@@ -74,7 +74,7 @@ html, body, #root {
 
 .eq-bg-carte svg {
   position: absolute;
-  top: -111px;
+  top: 0;
   left: 0;
   width: 100%;
 }

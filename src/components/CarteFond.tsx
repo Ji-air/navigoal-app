@@ -70,6 +70,10 @@ function CarteFond({ visible = true }: CarteFondProps) {
   const [nmSelf,      setNmSelf]      = useState(0)
   const [adversaires, setAdversaires] = useState<{ nm: number }[]>(DEMO_ADVERSAIRES)
   const [boatTfs,     setBoatTfs]     = useState<BoatTf[]>([])
+  const [pathReady,   setPathReady]   = useState(false)
+
+  // Signale que le SVGPathElement est monté et prêt pour les calculs DOM
+  useEffect(() => { if (visible) setPathReady(true) }, [visible])
 
   // ── Fetch positions une seule fois au montage ─────────────────────────────
   useEffect(() => {
@@ -116,7 +120,7 @@ function CarteFond({ visible = true }: CarteFondProps) {
   // ── Calcul des transforms bateaux après montage du path ───────────────────
   useEffect(() => {
     const path = trajRef.current
-    if (!path) return
+    if (!path || !pathReady) return
     const all = [
       { nm: nmSelf, isSelf: true },
       ...adversaires.map(a => ({ nm: a.nm, isSelf: false })),
@@ -130,7 +134,7 @@ function CarteFond({ visible = true }: CarteFondProps) {
         b.isSelf ? 1.8   : 1.4,
       ),
     })))
-  }, [nmSelf, adversaires])
+  }, [nmSelf, adversaires, pathReady])
 
   if (!visible) return null
 
