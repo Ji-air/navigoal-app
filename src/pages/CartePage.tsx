@@ -304,8 +304,8 @@ export default function CartePage({ onNavigate }: CartePageProps) {
       >
         <div className="ct-map-inner" style={{ transform: `translateY(${translateY}px)` }}>
           <svg
-            width={SVG_W} height={SVG_H}
-            viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+            width={SVG_W} height={3580}
+            viewBox={`0 0 ${SVG_W} 3580`}
             xmlns="http://www.w3.org/2000/svg"
             style={{ display: 'block' }}
           >
@@ -352,6 +352,8 @@ export default function CartePage({ onNavigate }: CartePageProps) {
 
             {/* Background */}
             <rect width={SVG_W} height={SVG_H} fill="#0D1117"/>
+            {/* Bottom margin — 430px padding so the map is visible at 0nm */}
+            <rect width={390} height={430} y={3150} fill="#0D1117"/>
 
             {/* Concentric glow zones around trajectory */}
             <path d={TRAJECTOIRE_PATH} fill="none" stroke="rgba(0,229,204,0.040)" strokeWidth="55"  strokeLinecap="round"/>
