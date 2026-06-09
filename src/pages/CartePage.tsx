@@ -280,7 +280,7 @@ export default function CartePage({ onNavigate }: CartePageProps) {
       <div className="ct-hud" aria-hidden="true">
         <span className="ct-hud-j">Journée {numJournee}</span>
         <button type="button" className="eq-captain" onClick={recenter}
-          style={{ pointerEvents: 'auto', cursor: 'pointer' }}>
+          style={{ pointerEvents: 'auto', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
           <div className="eq-captain-avatar">
             <svg viewBox="0 0 24 24">
               <path d="M2 17 C2 17 4 15 12 15 C20 15 22 17 22 17"/>
